@@ -51,9 +51,11 @@ def update_expense(expense_id:int, expense:Expense, db: Session = Depends(get_db
     
 
 @app.delete("/expenses/{expense_id}")
-def delete_expense(expense_id:int):
-    for i,item in enumerate(expenses):
-        if item["id"]==expense_id:
-            deleted=expenses.pop(i)
-            return{"message":"Deleted Successfully","deleted":deleted}
-    raise HTTPException(status_code=404, detail="Expense not found")
+def delete_expense(expense_id:int, db: Session = Depends(get_db)):
+    item = db.query(DBExpense).filter(DBExpense.id == expense_id).first()
+    if item is None:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    db.delete(item)
+    db.commit()
+    return {"message": f"Expense with ID {expense_id} successfully deleted"}
+    
